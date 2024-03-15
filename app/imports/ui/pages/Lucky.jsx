@@ -10,6 +10,7 @@ import { Projects } from '../../api/projects/Projects';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { pageStyle } from './pageStyles';
 import { PageIDs } from '../utilities/ids';
+import ProfileCard from '../components/ProfileCard'; // Import ProfileCard component
 
 /* Returns the Profile and associated Projects and Interests associated with the passed user email. */
 function getProfileData(email) {
@@ -17,12 +18,11 @@ function getProfileData(email) {
   const interests = _.pluck(ProfilesInterests.collection.find({ profile: email }).fetch(), 'interest');
   const projects = _.pluck(ProfilesProjects.collection.find({ profile: email }).fetch(), 'project');
   const projectPictures = projects.map(project => Projects.collection.findOne({ name: project })?.picture);
-  // console.log(_.extend({ }, data, { interests, projects: projectPictures }));
   return _.extend({}, data, { interests, projects: projectPictures });
 }
 
 /* Renders the Profile Collection as a set of Cards. */
-const ProfilesPage = () => {
+const LuckyPage = () => {
 
   const { ready } = useTracker(() => {
     // Ensure that minimongo is populated with all collections prior to running render().
@@ -34,18 +34,19 @@ const ProfilesPage = () => {
       ready: sub1.ready() && sub2.ready() && sub3.ready() && sub4.ready(),
     };
   }, []);
+
   const emails = _.pluck(Profiles.collection.find().fetch(), 'email');
-  // There is a potential race condition. We might not be ready at this point.
-  // Need to ensure that getProfileData doesn't throw an error on line 18.
   const profileData = emails.map(email => getProfileData(email));
+  const profile = _.sample(profileData);
+
   return ready ? (
     <Container id={PageIDs.profilesPage} style={pageStyle}>
       <Row xs={1} md={2} lg={4} className="g-2">
-        {/* eslint-disable-next-line react/jsx-no-undef */}
-        {profileData.map((profile, index) => <ProfileCard key={index} profile={profile} />)}
+        {/* Render ProfileCard component with profile prop */}
+        <ProfileCard profile={profile} />
       </Row>
     </Container>
   ) : <LoadingSpinner />;
 };
 
-export default ProfilesPage;
+export default LuckyPage;
